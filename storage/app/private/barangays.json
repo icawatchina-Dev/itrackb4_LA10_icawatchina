@@ -1,0 +1,32 @@
+[
+    {
+        "id": 1,
+        "name": "Proper 1",
+        "municipality": "Calatagan",
+        "population": 2450
+    },
+    {
+        "id": 2,
+        "name": "Proper 2",
+        "municipality": "Calatagan",
+        "population": 1800
+    },
+    {
+        "id": 3,
+        "name": "Proper 3",
+        "municipality": "Calatagan",
+        "population": 3200
+    },
+    {
+        "id": 4,
+        "name": "Proper 4",
+        "municipality": "Calatagan",
+        "population": 1500
+    },
+    {
+        "id": 5,
+        "name": "Proper 5",
+        "municipality": "Calatagan",
+        "population": 2800
+    }
+]
