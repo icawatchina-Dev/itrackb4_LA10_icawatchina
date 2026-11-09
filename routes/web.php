@@ -11,4 +11,4 @@ Route::get('/brgy/filter/{municipality}', function (string $municipality) {
     return redirect()->route('brgys.index', ['municipality' => $municipality]);
 })->name('brgys.filter');
 
-Route::resource('brgys', BrgyController::class)->only(['index', 'create', 'store', 'show']);
+Route::resource('brgys', BrgyController::class);

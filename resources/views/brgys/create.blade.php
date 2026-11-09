@@ -48,34 +48,4 @@
         <button class="btn btn-primary" type="submit">Save barangay</button>
         <a class="btn btn-secondary" href="{{ route('brgys.index') }}">Cancel</a>
     </form>
-@endsection@extends('layouts.app')
-
-@section('title', 'Add New Barangay')
-
-@section('content')
-    <div class="container">
-        <h1>Add New Barangay</h1>
-
-        <form action="{{ route('brgys.store') }}" method="POST">
-            @csrf 
-
-            <div class="mb-3">
-                <label for="name" class="form-label">Barangay Name</label>
-                <input type="text" class="form-control" id="name" name="name" required>
-            </div>
-
-            <div class="mb-3">
-                <label for="municipality" class="form-label">Municipality</label>
-                <input type="text" class="form-control" id="municipality" name="municipality" required>
-            </div>
-
-            <div class="mb-3">
-                <label for="population" class="form-label">Population</label>
-                <input type="number" class="form-control" id="population" name="population">
-            </div>
-
-            <button type="submit" class="btn btn-success">Save Barangay</button>
-            <a href="{{ route('brgys.index') }}" class="btn btn-secondary">Cancel</a>
-        </form>
-    </div>
 @endsection

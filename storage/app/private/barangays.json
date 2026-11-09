@@ -1,32 +1,38 @@
 [
     {
         "id": 1,
-        "name": "Proper 1",
-        "municipality": "Calatagan",
-        "population": 2450
+        "name": "San Isidro Village",
+        "municipality": "Virac",
+        "population": 1200
     },
     {
         "id": 2,
-        "name": "Proper 2",
-        "municipality": "Calatagan",
-        "population": 1800
+        "name": "Sabangan",
+        "municipality": "Virac",
+        "population": 2600
     },
     {
         "id": 3,
-        "name": "Proper 3",
-        "municipality": "Calatagan",
-        "population": 3200
+        "name": "San Andres Proper",
+        "municipality": "San Andres",
+        "population": 2100
     },
     {
         "id": 4,
-        "name": "Proper 4",
-        "municipality": "Calatagan",
-        "population": 1500
+        "name": "Codon",
+        "municipality": "San Andres",
+        "population": 3100
     },
     {
         "id": 5,
-        "name": "Proper 5",
-        "municipality": "Calatagan",
+        "name": "Bato Central",
+        "municipality": "Bato",
+        "population": null
+    },
+    {
+        "id": 6,
+        "name": "Pangcayanan",
+        "municipality": "Bato",
         "population": 2800
     }
 ]

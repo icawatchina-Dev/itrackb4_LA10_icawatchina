@@ -47,5 +47,12 @@ class BarangaySeeder extends Seeder
             'household' => 700,
             'has_health_center' => true,
         ]);
+        Barangay::create([
+            'brgy_name' => 'Proper 6',
+            'population' => 2200,
+            'city' => 'Calatagan',
+            'household' => 550,
+            'has_health_center' => false,
+        ]);
     }
 }

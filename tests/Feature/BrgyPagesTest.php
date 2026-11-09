@@ -44,6 +44,31 @@ class BrgyPagesTest extends TestCase
             ->assertOk()
             ->assertSee('San Andres Proper')
             ->assertSee('Codon')
+            ->assertSee('<td>3</td>', false)
+            ->assertDontSee('San Isidro Village');
+    }
+
+    public function test_barangay_list_uses_municipality_ids_in_filter_links(): void
+    {
+        $this->get('/brgys')
+            ->assertOk()
+            ->assertSee('municipality=1&amp;population_group=all', false)
+            ->assertSee('municipality=2&amp;population_group=all', false)
+            ->assertSee('municipality=3&amp;population_group=all', false);
+
+        $this->get('/brgys?municipality=1&population_group=all')
+            ->assertOk()
+            ->assertSee('San Isidro Village')
+            ->assertDontSee('San Andres Proper');
+
+        $this->get('/brgys?municipality=2&population_group=all')
+            ->assertOk()
+            ->assertSee('San Andres Proper')
+            ->assertDontSee('San Isidro Village');
+
+        $this->get('/brgys?municipality=3&population_group=all')
+            ->assertOk()
+            ->assertSee('Bato Central')
             ->assertDontSee('San Isidro Village');
     }
 

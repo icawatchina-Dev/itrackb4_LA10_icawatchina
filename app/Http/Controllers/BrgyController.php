@@ -1,8 +1,8 @@
 <?php
 
 namespace App\Http\Controllers;
-
 use App\Models\Barangay;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
@@ -10,55 +10,83 @@ class BrgyController extends Controller
 {
     public function index(Request $request)
     {
-        $allBrgys = Barangay::all()->values()->map(
-            fn (Barangay $brgy, int $index) => [
+        DB::enableQueryLog();
+        DB::flushQueryLog();
+        $selectedMunicipality = $request->query('municipality', 'all');
+        $selectedPopulationGroup = $request->query('population_group', 'all');
+
+        $brgys = Barangay::query()
+            ->with('municipality')
+            ->get()
+            ->values()
+            ->map(fn (Barangay $brgy, int $index) => [
                 'id' => $brgy->getKey() ?? $index + 1,
                 'name' => $brgy->getAttribute('brgy_name'),
-                'municipality' => $brgy->getAttribute('city'),
+                'municipality' => $brgy->municipality->name,
                 'population' => $brgy->getAttribute('population'),
-            ]
-        );
-        $municipalities = $allBrgys->pluck('municipality')->unique()->values();
-        $municipality = $request->query('municipality', 'all');
-        $populationGroup = $request->query('population_group', 'all');
+            ])
+            ->all();
 
-        $brgys = $allBrgys;
+        $municipalityNames = collect($brgys)
+            ->pluck('municipality')
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
+        $municipalities = collect($municipalityNames)
+            ->map(fn (string $name, int $index) => ['id' => $index + 1, 'name' => $name])
+            ->all();
 
-        if ($municipality !== 'all') {
-            $brgys = $brgys->filter(
-                fn (array $brgy) => strcasecmp($brgy['municipality'], $municipality) === 0
-            );
+        $selectedMunicipalityName = $selectedMunicipality;
+        if ($selectedMunicipality !== 'all') {
+            $selectedMunicipalityRecord = collect($municipalities)
+                ->firstWhere('id', (int) $selectedMunicipality);
+            $selectedMunicipalityName = $selectedMunicipalityRecord['name'] ?? $selectedMunicipality;
+            $municipalityToFilter = $selectedMunicipalityRecord['name'] ?? $selectedMunicipality;
+
+            $brgys = array_values(array_filter(
+                $brgys,
+                fn (array $brgy) => ($brgy['municipality'] ?? '') === $municipalityToFilter
+            ));
+        } else {
+            $selectedMunicipalityName = 'all';
         }
 
-        if ($populationGroup !== 'all') {
-            $brgys = $brgys->filter(function (array $brgy) use ($populationGroup) {
-                $population = $brgy['population'];
+        if ($selectedPopulationGroup !== 'all') {
+            $brgys = array_values(array_filter(
+                $brgys,
+                function (array $brgy) use ($selectedPopulationGroup): bool {
+                    $population = $brgy['population'] ?? null;
 
-                return match ($populationGroup) {
-                    'high' => $population !== null && $population >= 2500,
-                    'lower' => $population !== null && $population < 2500,
-                    'unavailable' => $population === null,
-                    default => false,
-                };
-            });
+                    return match ($selectedPopulationGroup) {
+                        'high' => $population !== null && $population >= 2500,
+                        'lower' => $population !== null && $population < 2500,
+                        'unavailable' => $population === null,
+                        default => true,
+                    };
+                }
+            ));
         }
 
-        return view('brgys.index', [
-            'brgys' => $brgys->values(),
-            'municipalities' => $municipalities,
-            'selectedMunicipality' => $municipality,
-            'selectedPopulationGroup' => $populationGroup,
-        ]);
+        return view('brgys.index', compact(
+            'brgys',
+            'municipalities',
+            'selectedMunicipality',
+            'selectedMunicipalityName',
+            'selectedPopulationGroup'
+        ));
     }
 
     public function create()
     {
         $municipalities = collect($this->barangays())
             ->pluck('municipality')
+            ->filter()
             ->unique()
-            ->values();
+            ->values()
+            ->all();
 
-        return view('brgys.create', ['municipalities' => $municipalities]);
+        return view('brgys.create', compact('municipalities'));
     }
 
     public function store(Request $request)
@@ -74,10 +102,9 @@ class BrgyController extends Controller
         ]);
 
         $validated['id'] = (int) $validated['id'];
-        $population = $validated['population'] ?? null;
-        $validated['population'] = $population === null
-            ? null
-            : (int) $population;
+        $validated['population'] = isset($validated['population'])
+            ? (int) $validated['population']
+            : null;
 
         $barangays[] = $validated;
         $this->saveBarangays($barangays);
@@ -96,8 +123,14 @@ class BrgyController extends Controller
 
     private function barangays(): array
     {
+        $path = storage_path('app/private/barangays.json');
+
+        if (! file_exists($path)) {
+            return [];
+        }
+
         return json_decode(
-            file_get_contents(storage_path('app/private/barangays.json')),
+            file_get_contents($path),
             true,
             512,
             JSON_THROW_ON_ERROR
