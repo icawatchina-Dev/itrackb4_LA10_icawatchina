@@ -29,7 +29,7 @@
             <select class="form-select @error('municipality') is-invalid @enderror" id="municipality" name="municipality" required>
                 <option value="" disabled @selected(old('municipality') === null)>Choose a municipality</option>
                 @foreach ($municipalities as $municipality)
-                    <option value="{{ $municipality }}" @selected(old('municipality') === $municipality)>{{ $municipality }}</option>
+                    <option value="{{ $municipality->name }}" @selected(old('municipality') === $municipality->name)>{{ $municipality->name }}</option>
                 @endforeach
             </select>
             @error('municipality')

@@ -34,5 +34,17 @@
         "name": "Pangcayanan",
         "municipality": "Bato",
         "population": 2800
+    },
+    {
+        "id": 7,
+        "name": "Fred",
+        "municipality": "Virac",
+        "population": 1532
+    },
+    {
+        "id": 8,
+        "name": "Heat",
+        "municipality": "Bato",
+        "population": 78666
     }
 ]

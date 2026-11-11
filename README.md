@@ -1,6 +1,5 @@
-G1.
-    I turned the municipality column into a table. I chose this because it repeats in every barangay record and I need it for the filter dropdown. I didn't choose popuulation because the numbers are different for each barangay.
-G2.
-    Screenshot 6 showed Queries:7. Its 1 query for all 6 barangay +6 queries to get each municipalities name. That's why it's 7.
-G3.
-    If I made  belongsTo plural like municipalities, it would break because $brgy->municipality->name in my blade will not work. One barangay only belong to one municipality, so it must be singular.
+G1. I made municipality its own table because many barangays share the same municipality. Population stays with each barangay because every barangay can have a different population.
+
+G2. Screenshot 6 showed 7 queries: one to get the barangays, then six more to look up each barangay’s municipality. With with('municipality'), the same page needs only 2.
+
+G3. Each barangay has one municipality, so the relationship is called municipality. If I changed it to municipalities, I’d also need to change the code that uses $brgy->municipality->name. Otherwise, the page would break.sta

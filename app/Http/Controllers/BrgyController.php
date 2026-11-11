@@ -1,9 +1,11 @@
 <?php
 
 namespace App\Http\Controllers;
+
 use App\Models\Barangay;
-use Illuminate\Support\Facades\DB;
+use App\Models\Municipality;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 
 class BrgyController extends Controller
@@ -14,6 +16,16 @@ class BrgyController extends Controller
         DB::flushQueryLog();
         $selectedMunicipality = $request->query('municipality', 'all');
         $selectedPopulationGroup = $request->query('population_group', 'all');
+        $municipalities = Municipality::query()
+            ->orderBy('name')
+            ->get(['id', 'name'])
+            ->map(fn (Municipality $municipality) => [
+                'id' => $municipality->getKey(),
+                'name' => $municipality->name,
+            ])
+            ->all();
+
+        DB::flushQueryLog();
 
         $brgys = Barangay::query()
             ->with('municipality')
@@ -23,18 +35,9 @@ class BrgyController extends Controller
                 'id' => $brgy->getKey() ?? $index + 1,
                 'name' => $brgy->getAttribute('brgy_name'),
                 'municipality' => $brgy->municipality->name,
+                'municipality_id' => $brgy->municipality->getKey(),
                 'population' => $brgy->getAttribute('population'),
             ])
-            ->all();
-
-        $municipalityNames = collect($brgys)
-            ->pluck('municipality')
-            ->filter()
-            ->unique()
-            ->values()
-            ->all();
-        $municipalities = collect($municipalityNames)
-            ->map(fn (string $name, int $index) => ['id' => $index + 1, 'name' => $name])
             ->all();
 
         $selectedMunicipalityName = $selectedMunicipality;
@@ -42,11 +45,12 @@ class BrgyController extends Controller
             $selectedMunicipalityRecord = collect($municipalities)
                 ->firstWhere('id', (int) $selectedMunicipality);
             $selectedMunicipalityName = $selectedMunicipalityRecord['name'] ?? $selectedMunicipality;
-            $municipalityToFilter = $selectedMunicipalityRecord['name'] ?? $selectedMunicipality;
 
             $brgys = array_values(array_filter(
                 $brgys,
-                fn (array $brgy) => ($brgy['municipality'] ?? '') === $municipalityToFilter
+                fn (array $brgy) => $selectedMunicipalityRecord
+                    ? $brgy['municipality_id'] === $selectedMunicipalityRecord['id']
+                    : $brgy['municipality'] === $selectedMunicipality
             ));
         } else {
             $selectedMunicipalityName = 'all';
@@ -79,12 +83,9 @@ class BrgyController extends Controller
 
     public function create()
     {
-        $municipalities = collect($this->barangays())
-            ->pluck('municipality')
-            ->filter()
-            ->unique()
-            ->values()
-            ->all();
+        $municipalities = Municipality::query()
+            ->orderBy('name')
+            ->get(['id', 'name']);
 
         return view('brgys.create', compact('municipalities'));
     }

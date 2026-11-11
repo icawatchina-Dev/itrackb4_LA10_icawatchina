@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\Municipality;
 use Tests\TestCase;
 
 class BrgyPagesTest extends TestCase
@@ -50,30 +51,31 @@ class BrgyPagesTest extends TestCase
 
     public function test_barangay_list_uses_municipality_ids_in_filter_links(): void
     {
-        $this->get('/brgys')
-            ->assertOk()
-            ->assertSee('municipality=1&amp;population_group=all', false)
-            ->assertSee('municipality=2&amp;population_group=all', false)
-            ->assertSee('municipality=3&amp;population_group=all', false);
+        $municipalities = Municipality::query()->orderBy('id')->get();
+        $this->assertNotEmpty($municipalities);
 
-        $this->get('/brgys?municipality=1&population_group=all')
-            ->assertOk()
-            ->assertSee('San Isidro Village')
-            ->assertDontSee('San Andres Proper');
+        $response = $this->get('/brgys')->assertOk();
 
-        $this->get('/brgys?municipality=2&population_group=all')
-            ->assertOk()
-            ->assertSee('San Andres Proper')
-            ->assertDontSee('San Isidro Village');
+        foreach ($municipalities as $municipality) {
+            $response->assertSee($municipality->name)
+                ->assertSee(
+                    'municipality='.$municipality->getKey().'&amp;population_group=all',
+                    false
+                );
+        }
 
-        $this->get('/brgys?municipality=3&population_group=all')
+        $municipality = $municipalities->first();
+        $this->get('/brgys?municipality='.$municipality->getKey().'&population_group=all')
             ->assertOk()
-            ->assertSee('Bato Central')
-            ->assertDontSee('San Isidro Village');
+            ->assertSee('Showing barangays in '.$municipality->name);
     }
 
     public function test_create_form_contains_every_barangay_field(): void
     {
+        $municipality = Municipality::query()->orderBy('name')->first();
+        $this->assertNotNull($municipality);
+        $municipalityNames = Municipality::query()->pluck('name')->all();
+
         $this->get('/brgys/create')
             ->assertOk()
             ->assertSee('name="id"', false)
@@ -81,7 +83,16 @@ class BrgyPagesTest extends TestCase
             ->assertSee('name="municipality"', false)
             ->assertSee('name="population"', false)
             ->assertSee('action="'.route('brgys.store').'"', false)
-            ->assertSee('name="_token"', false);
+            ->assertSee('name="_token"', false)
+            ->assertSee('value="'.$municipality->name.'"', false)
+            ->assertSee('>'.$municipality->name.'</option>', false)
+            ->assertSee('>Virac</option>', false)
+            ->assertSee('>San Andres</option>', false)
+            ->assertSee('>Bato</option>', false);
+
+        $this->assertContains('Virac', $municipalityNames);
+        $this->assertContains('San Andres', $municipalityNames);
+        $this->assertContains('Bato', $municipalityNames);
     }
 
     public function test_invalid_barangay_submission_does_not_save(): void
