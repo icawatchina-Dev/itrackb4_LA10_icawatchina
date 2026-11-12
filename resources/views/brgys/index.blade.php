@@ -40,13 +40,14 @@
                     <th scope="col">Municipality</th>
                     <th scope="col">Population</th>
                     <th scope="col">Population group</th>
+                    <th scope="col">Actions</th>
                 </tr>
             </thead>
             <tbody>
                 @forelse ($brgys as $brgy)
                     <tr>
                         <td>{{ $brgy['id'] }}</td>
-                        <td><a href="{{ route('brgys.show', $brgy['id']) }}">{{ $brgy['name'] }}</a></td>
+                        <td><a href="{{ route('brgys.show', $brgy['route_key']) }}">{{ $brgy['name'] }}</a></td>
                         <td>{{ $brgy['municipality'] }}</td>
                         <td>{{ $brgy['population'] ?? 'Not available' }}</td>
                         <td>
@@ -58,14 +59,20 @@
                                 Lower population
                             @endif
                         </td>
+                        <td>
+                            <form action="{{ route('brgys.destroy', $brgy['route_key']) }}" method="POST" onsubmit="return confirm('Delete this record?')">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                            </form>
+                        </td>
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="5">No barangays are available right now.</td>
+                        <td colspan="6">No barangays are available right now.</td>
                     </tr>
                 @endforelse
             </tbody>
         </table>
     </div>
-    <p>Queries: {{ count(\Illuminate\Support\Facades\DB::getQueryLog()) }}</p>
 @endsection

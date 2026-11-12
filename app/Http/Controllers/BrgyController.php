@@ -5,17 +5,15 @@ namespace App\Http\Controllers;
 use App\Models\Barangay;
 use App\Models\Municipality;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 
 class BrgyController extends Controller
 {
     public function index(Request $request)
     {
-        DB::enableQueryLog();
-        DB::flushQueryLog();
         $selectedMunicipality = $request->query('municipality', 'all');
         $selectedPopulationGroup = $request->query('population_group', 'all');
+        
         $municipalities = Municipality::query()
             ->orderBy('name')
             ->get(['id', 'name'])
@@ -25,17 +23,16 @@ class BrgyController extends Controller
             ])
             ->all();
 
-        DB::flushQueryLog();
-
         $brgys = Barangay::query()
             ->with('municipality')
             ->get()
             ->values()
             ->map(fn (Barangay $brgy, int $index) => [
-                'id' => $brgy->getKey() ?? $index + 1,
-                'name' => $brgy->getAttribute('brgy_name'),
-                'municipality' => $brgy->municipality->name,
-                'municipality_id' => $brgy->municipality->getKey(),
+                'id' => $index + 1,
+                'route_key' => $brgy->getRouteKey(),
+                'name' => $brgy->getAttribute('brgy_name') ?? $brgy->name,
+                'municipality' => $brgy->municipality->name ?? null,
+                'municipality_id' => $brgy->municipality?->getKey(),
                 'population' => $brgy->getAttribute('population'),
             ])
             ->all();
@@ -52,8 +49,6 @@ class BrgyController extends Controller
                     ? $brgy['municipality_id'] === $selectedMunicipalityRecord['id']
                     : $brgy['municipality'] === $selectedMunicipality
             ));
-        } else {
-            $selectedMunicipalityName = 'all';
         }
 
         if ($selectedPopulationGroup !== 'all') {
@@ -92,57 +87,59 @@ class BrgyController extends Controller
 
     public function store(Request $request)
     {
-        $barangays = $this->barangays();
-        $municipalities = array_values(array_unique(array_column($barangays, 'municipality')));
-
         $validated = $request->validate([
-            'id' => ['required', 'integer', 'min:1', Rule::notIn(array_column($barangays, 'id'))],
-            'name' => ['required', 'string', 'max:255'],
-            'municipality' => ['required', Rule::in($municipalities)],
+            'brgy_name' => ['required', 'string', 'max:255', Rule::unique('brgys', 'brgy_name')],
+            'city' => ['required', Rule::exists('municipalities', 'name')],
             'population' => ['nullable', 'integer', 'min:0'],
+            'household' => ['nullable', 'integer', 'min:0'],
+            'has_health_center' => ['required', 'boolean'],
         ]);
 
-        $validated['id'] = (int) $validated['id'];
-        $validated['population'] = isset($validated['population'])
-            ? (int) $validated['population']
-            : null;
-
-        $barangays[] = $validated;
-        $this->saveBarangays($barangays);
+        Barangay::create($validated);
 
         return redirect()->route('brgys.index')->with('success', 'Barangay added successfully.');
     }
 
-    public function show(string $id)
+    // Part B Requirements B1, B3, B4: show takes model parameter $brgy, no findOrFail
+    public function show(Barangay $brgy)
     {
-        $brgy = collect($this->barangays())->firstWhere('id', (int) $id);
-
-        abort_unless($brgy, 404);
-
-        return view('brgys.show', ['brgy' => $brgy]);
+        return view('brgys.show', compact('brgy'));
     }
 
-    private function barangays(): array
+    // Part B & C Requirements C1: edit passes both record and lookup rows
+    public function edit(Barangay $brgy)
     {
-        $path = storage_path('app/private/barangays.json');
+        $municipalities = Municipality::all();
 
-        if (! file_exists($path)) {
-            return [];
-        }
-
-        return json_decode(
-            file_get_contents($path),
-            true,
-            512,
-            JSON_THROW_ON_ERROR
-        );
+        return view('brgys.edit', compact('brgy', 'municipalities'));
     }
 
-    private function saveBarangays(array $barangays): void
+    // Part B Requirements B2 & B3: update takes model parameter $brgy, no findOrFail
+    public function update(Request $request, Barangay $brgy)
     {
-        file_put_contents(
-            storage_path('app/private/barangays.json'),
-            json_encode($barangays, JSON_PRETTY_PRINT | JSON_THROW_ON_ERROR)
-        );
+        $validated = $request->validate([
+            'brgy_name' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('brgys', 'brgy_name')->ignore($brgy->getKey(), 'brgy_name'),
+            ],
+            'city' => ['required', Rule::exists('municipalities', 'name')],
+            'population' => ['nullable', 'integer', 'min:0'],
+            'household' => ['nullable', 'integer', 'min:0'],
+            'has_health_center' => ['required', 'boolean'],
+        ]);
+
+        $brgy->update($validated);
+
+        return redirect()->route('brgys.index')->with('success', 'Barangay updated successfully.');
+    }
+
+    // Part B Requirements B2 & B3: destroy takes model parameter $brgy, no findOrFail
+    public function destroy(Barangay $brgy)
+    {
+        $brgy->delete();
+
+        return redirect()->route('brgys.index')->with('success', 'Barangay deleted successfully.');
     }
 }
