@@ -1,7 +1,8 @@
-G1: The route needs a {brgy} parameter, and the controller needs a matching Barangay $brgy argument. If either is missing or named differently, Laravel may not load the record automatically.
 
-G2: A link sends a GET request, but deleting needs a DELETE request. So Laravel matched the URL to the detail page instead.
+H1
+The file in `vendor` was where Laravel noticed the problem, not where I made it. The trace led me back to `BrgyController.php`, where I had typed `withh()` instead of `with()`.
+ H2
+My log records the barangay name when I save it. Later, I can check the log to see which barangay was added, something the error page would not tell me.
 
-G3: The second argument gives the form the record’s current value when it first opens. Without it, fields may be blank. If you use only the record’s current value and leave out old(), your typed changes disappear after a validation error.
-
-Btw po sir nasa screenshot 8 na ako, kaso nagrepeat po ako pagcreate ning bagong brgy para un na lng po ung idelete ko kaya mahihiling po sa ibang screenshot igwa na pong delete button.
+H3
+I use a 403 when someone tries to delete the last barangay in a municipality, because that action is not allowed. I would redirect back with a message for a mistake the user can fix and try again.
