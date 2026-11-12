@@ -1,5 +1,7 @@
-G1. I made municipality its own table because many barangays share the same municipality. Population stays with each barangay because every barangay can have a different population.
+G1: The route needs a {brgy} parameter, and the controller needs a matching Barangay $brgy argument. If either is missing or named differently, Laravel may not load the record automatically.
 
-G2. Screenshot 6 showed 7 queries: one to get the barangays, then six more to look up each barangay’s municipality. With with('municipality'), the same page needs only 2.
+G2: A link sends a GET request, but deleting needs a DELETE request. So Laravel matched the URL to the detail page instead.
 
-G3. Each barangay has one municipality, so the relationship is called municipality. If I changed it to municipalities, I’d also need to change the code that uses $brgy->municipality->name. Otherwise, the page would break.sta
+G3: The second argument gives the form the record’s current value when it first opens. Without it, fields may be blank. If you use only the record’s current value and leave out old(), your typed changes disappear after a validation error.
+
+Btw po sir nasa screenshot 8 na ako, kaso nagrepeat po ako pagcreate ning bagong brgy para un na lng po ung idelete ko kaya mahihiling po sa ibang screenshot igwa na pong delete button.
