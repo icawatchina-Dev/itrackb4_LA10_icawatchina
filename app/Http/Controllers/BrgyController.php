@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Barangay;
 use App\Models\Municipality;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
 
 class BrgyController extends Controller
@@ -95,18 +96,20 @@ class BrgyController extends Controller
             'has_health_center' => ['required', 'boolean'],
         ]);
 
-        Barangay::create($validated);
+        $brgy = Barangay::create($validated);
+
+        Log::info('Barangay saved', [
+            'id' => $brgy->getKey(),
+        ]);
 
         return redirect()->route('brgys.index')->with('success', 'Barangay added successfully.');
     }
 
-    // Part B Requirements B1, B3, B4: show takes model parameter $brgy, no findOrFail
     public function show(Barangay $brgy)
     {
         return view('brgys.show', compact('brgy'));
     }
 
-    // Part B & C Requirements C1: edit passes both record and lookup rows
     public function edit(Barangay $brgy)
     {
         $municipalities = Municipality::all();
@@ -114,7 +117,6 @@ class BrgyController extends Controller
         return view('brgys.edit', compact('brgy', 'municipalities'));
     }
 
-    // Part B Requirements B2 & B3: update takes model parameter $brgy, no findOrFail
     public function update(Request $request, Barangay $brgy)
     {
         $validated = $request->validate([
@@ -135,11 +137,12 @@ class BrgyController extends Controller
         return redirect()->route('brgys.index')->with('success', 'Barangay updated successfully.');
     }
 
-    // Part B Requirements B2 & B3: destroy takes model parameter $brgy, no findOrFail
     public function destroy(Barangay $brgy)
     {
+        abort_if($brgy->municipality->barangays()->count() === 1, 403);
+
         $brgy->delete();
 
-        return redirect()->route('brgys.index')->with('success', 'Barangay deleted successfully.');
+        return redirect()->route('brgys.index');
     }
 }
