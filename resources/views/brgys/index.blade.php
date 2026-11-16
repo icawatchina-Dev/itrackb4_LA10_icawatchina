@@ -7,29 +7,53 @@
         <a href="{{ route('brgys.create') }}" class="btn btn-primary">Add Barangay</a>
     </div>
 
-    @if ($selectedMunicipality === 'all' && $selectedPopulationGroup === 'all')
-        <p>Showing all barangays</p>
-    @elseif ($selectedMunicipality !== 'all' && $selectedPopulationGroup === 'all')
-        <p>Showing barangays in {{ $selectedMunicipalityName }}</p>
-    @elseif ($selectedMunicipality === 'all' && $selectedPopulationGroup !== 'all')
-        <p>Showing barangays in all municipalities with {{ $selectedPopulationGroup }} population</p>
-    @else
-        <p>Showing barangays in {{ $selectedMunicipalityName }} with {{ $selectedPopulationGroup }} population</p>
-    @endif
+    <form method="GET" action="{{ route('brgys.index') }}" class="row g-2 align-items-end mb-3">
+        <div class="col-md-3">
+            <label for="search" class="form-label">Search barangays</label>
+            <input class="form-control" type="text" id="search" name="search" value="{{ $search }}">
+        </div>
+        <div class="col-md-3">
+            <label for="municipality" class="form-label">Municipality</label>
+            <select class="form-select" id="municipality" name="municipality">
+                <option value="all" @selected($selectedMunicipality === 'all' || $selectedMunicipality === '')>All municipalities</option>
+                @foreach ($municipalities as $municipality)
+                    <option value="{{ $municipality['id'] }}" @selected($selectedMunicipality == $municipality['id'])>
+                        {{ $municipality['name'] }}
+                    </option>
+                @endforeach
+            </select>
+        </div>
+        <div class="col-md-3">
+            <label for="has_health_center" class="form-label">Health center</label>
+            <select class="form-select" id="has_health_center" name="has_health_center">
+                <option value="" @selected($selectedHealthCenter === null || $selectedHealthCenter === '')>Any</option>
+                <option value="1" @selected($selectedHealthCenter === '1')>Has health center</option>
+                <option value="0" @selected($selectedHealthCenter === '0')>No health center</option>
+            </select>
+        </div>
+        <div class="col-md-3">
+            <label for="population_group" class="form-label">Population group</label>
+            <select class="form-select" id="population_group" name="population_group">
+                <option value="all" @selected($selectedPopulationGroup === 'all')>Any group</option>
+                <option value="high" @selected($selectedPopulationGroup === 'high')>High population</option>
+                <option value="lower" @selected($selectedPopulationGroup === 'lower')>Lower population</option>
+                <option value="unavailable" @selected($selectedPopulationGroup === 'unavailable')>Population unavailable</option>
+            </select>
+        </div>
+        <div class="col-md-3">
+            <label for="sort" class="form-label">Sort by</label>
+            <select class="form-select" id="sort" name="sort">
+                <option value="brgy_name" @selected($sort === 'brgy_name')>Barangay name</option>
+                <option value="population" @selected($sort === 'population')>Population</option>
+            </select>
+        </div>
+        <div class="col-md-9 d-flex gap-2">
+            <button type="submit" class="btn btn-primary">Apply</button>
+            <a href="{{ route('brgys.index') }}" class="btn btn-outline-secondary">Clear</a>
+        </div>
+    </form>
 
-    <nav aria-label="Filter by municipality">
-        <a href="{{ route('brgys.index', ['municipality' => 'all', 'population_group' => $selectedPopulationGroup]) }}">All municipalities</a>
-        @foreach ($municipalities as $municipality)
-            | <a href="{{ route('brgys.index', ['municipality' => $municipality['id'], 'population_group' => $selectedPopulationGroup]) }}">{{ $municipality['name'] }}</a>
-        @endforeach
-</nav>
-
-    <nav aria-label="Filter by population group" class="mb-3">
-        <a href="{{ route('brgys.index', ['municipality' => $selectedMunicipality, 'population_group' => 'all']) }}">All groups</a> |
-        <a href="{{ route('brgys.index', ['municipality' => $selectedMunicipality, 'population_group' => 'high']) }}">High population</a> |
-        <a href="{{ route('brgys.index', ['municipality' => $selectedMunicipality, 'population_group' => 'lower']) }}">Lower population</a> |
-        <a href="{{ route('brgys.index', ['municipality' => $selectedMunicipality, 'population_group' => 'unavailable']) }}">Population unavailable</a>
-    </nav>
+    <p>Showing {{ $brgys->total() }} matching barangays</p>
 
     <div class="table-responsive">
         <table class="table table-striped align-middle mb-0">
@@ -40,6 +64,7 @@
                     <th scope="col">Municipality</th>
                     <th scope="col">Population</th>
                     <th scope="col">Population group</th>
+                    <th scope="col">Health center</th>
                     <th scope="col">Actions</th>
                 </tr>
             </thead>
@@ -59,6 +84,7 @@
                                 Lower population
                             @endif
                         </td>
+                        <td>{{ $brgy['has_health_center'] ? 'Yes' : 'No' }}</td>
                         <td>
                             <form action="{{ route('brgys.destroy', $brgy['route_key']) }}" method="POST" onsubmit="return confirm('Delete this record?')">
                                 @csrf
@@ -69,10 +95,11 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="6">No barangays are available right now.</td>
+                        <td colspan="7">No barangays are available right now.</td>
                     </tr>
                 @endforelse
             </tbody>
         </table>
     </div>
+    {{ $brgys->links() }}
 @endsection

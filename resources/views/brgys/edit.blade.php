@@ -10,28 +10,28 @@
         @method('PUT')
 
         <div class="mb-3">
-            <label class="form-label" for="brgy_name">Name</label>
-            <input class="form-control @error('brgy_name') is-invalid @enderror" type="text" id="brgy_name" name="brgy_name" value="{{ old('brgy_name', $brgy->brgy_name) }}" required>
-            @error('brgy_name')
+            <label class="form-label" for="name">Name</label>
+            <input class="form-control @error('name') is-invalid @enderror" type="text" id="name" name="name" value="{{ old('name', $brgy->brgy_name) }}" required>
+            @error('name')
                 <div class="text-danger">{{ $message }}</div>
             @enderror
         </div>
 
         <div class="mb-3">
-            <label class="form-label" for="city">Municipality</label>
-            <select class="form-select @error('city') is-invalid @enderror" id="city" name="city" required>
+            <label class="form-label" for="municipality">Municipality</label>
+            <select class="form-select @error('municipality') is-invalid @enderror" id="municipality" name="municipality" required>
                 @foreach ($municipalities as $municipality)
-                    <option value="{{ $municipality->name }}" @selected(old('city', $brgy->city) == $municipality->name)>{{ $municipality->name }}</option>
+                    <option value="{{ $municipality->name }}" @selected(old('municipality', $brgy->city) === $municipality->name)>{{ $municipality->name }}</option>
                 @endforeach
             </select>
-            @error('city')
+            @error('municipality')
                 <div class="text-danger">{{ $message }}</div>
             @enderror
         </div>
 
         <div class="mb-3">
             <label class="form-label" for="population">Population</label>
-            <input class="form-control @error('population') is-invalid @enderror" type="number" id="population" name="population" min="0" value="{{ old('population', $brgy->population) }}">
+            <input class="form-control @error('population') is-invalid @enderror" type="number" id="population" name="population" min="0" value="{{ old('population', $brgy->population) }}" required>
             @error('population')
                 <div class="text-danger">{{ $message }}</div>
             @enderror

@@ -1,6 +1,6 @@
 <?php
 use App\Http\Controllers\BrgyController;
-
+use App\Http\Controllers\HomeController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/whoami', function () {
@@ -11,4 +11,7 @@ Route::get('/brgy/filter/{municipality}', function (string $municipality) {
     return redirect()->route('brgys.index', ['municipality' => $municipality]);
 })->name('brgys.filter');
 
+Route::get('/', [HomeController::class, 'index'])->name('home');
+
 Route::resource('brgys', BrgyController::class);
+
