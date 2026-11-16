@@ -17,6 +17,7 @@ J2. Before, the pagination link only had the page number, so the search was lost
 
 J3. A wrong sort value silently goes back to the default, so I might not notice the typo. The allowed list only accepts brgy_name and population; anything else uses the default.
 
+Btw po sir from to 45 po kasi in-update kopo ung sa ibang brgy kaya naging 45 po lahat
 
 ## lab 10Part G
 
