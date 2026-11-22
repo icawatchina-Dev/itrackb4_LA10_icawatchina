@@ -19,7 +19,26 @@
                         @if (request()->routeIs('brgys.*')) aria-current="page" @endif
                         href="{{ route('brgys.index') }}">Barangays</a>
                 </li>
+                @guest
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->routeIs('login') ? 'active' : '' }}"
+                            @if (request()->routeIs('login')) aria-current="page" @endif
+                            href="{{ route('login') }}">Log in</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->routeIs('register.*') ? 'active' : '' }}"
+                            @if (request()->routeIs('register.*')) aria-current="page" @endif
+                            href="{{ route('register.create') }}">Register</a>
+                    </li>
+                @endguest
             </ul>
+            @auth
+                <span class="navbar-text ms-lg-3">Signed in as {{ auth()->user()->name }}</span>
+                <form class="ms-lg-3" method="POST" action="{{ route('logout') }}">
+                    @csrf
+                    <button class="btn btn-outline-light btn-sm" type="submit">Log out</button>
+                </form>
+            @endauth
         </div>
     </div>
 </nav>

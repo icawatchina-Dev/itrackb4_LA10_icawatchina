@@ -4,7 +4,9 @@
 
 @section('content')
     <div class="mb-3">
-        <a href="{{ route('brgys.create') }}" class="btn btn-primary">Add Barangay</a>
+        @auth
+            <a href="{{ route('brgys.create') }}" class="btn btn-primary">+ Add Barangay</a>
+        @endauth
     </div>
 
     <form method="GET" action="{{ route('brgys.index') }}" class="row g-2 align-items-end mb-3">
@@ -65,7 +67,9 @@
                     <th scope="col">Population</th>
                     <th scope="col">Population group</th>
                     <th scope="col">Health center</th>
-                    <th scope="col">Actions</th>
+                    @auth
+                        <th scope="col">Actions</th>
+                    @endauth
                 </tr>
             </thead>
             <tbody>
@@ -85,17 +89,20 @@
                             @endif
                         </td>
                         <td>{{ $brgy['has_health_center'] ? 'Yes' : 'No' }}</td>
-                        <td>
-                            <form action="{{ route('brgys.destroy', $brgy['route_key']) }}" method="POST" onsubmit="return confirm('Delete this record?')">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="btn btn-danger btn-sm">Delete</button>
-                            </form>
-                        </td>
+                        @auth
+                            <td>
+                                <a href="{{ route('brgys.edit', $brgy['route_key']) }}" class="btn btn-primary btn-sm">Edit</a>
+                                <form action="{{ route('brgys.destroy', $brgy['route_key']) }}" method="POST" onsubmit="return confirm('Delete this record?')">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                                </form>
+                            </td>
+                        @endauth
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="7">No barangays are available right now.</td>
+                        <td colspan="{{ auth()->check() ? 7 : 6 }}">No barangays are available right now.</td>
                     </tr>
                 @endforelse
             </tbody>

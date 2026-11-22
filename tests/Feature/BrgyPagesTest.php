@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Barangay;
 use App\Models\Municipality;
+use App\Models\User;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Tests\TestCase;
 
@@ -48,12 +49,54 @@ class BrgyPagesTest extends TestCase
             ->assertDontSee('Bato Central');
     }
 
+    public function test_guest_and_signed_in_user_see_the_correct_navigation_and_list_actions(): void
+    {
+        $this->get(route('brgys.index'))
+            ->assertOk()
+            ->assertSee('Log in')
+            ->assertSee('Register')
+            ->assertDontSee('Signed in as')
+            ->assertDontSee('+ Add Barangay')
+            ->assertDontSee('Actions')
+            ->assertDontSee('Edit')
+            ->assertDontSee('Delete');
+
+        $this->signIn();
+
+        $this->get(route('brgys.index'))
+            ->assertOk()
+            ->assertSee('Signed in as Barangay Test User')
+            ->assertSee('Log out')
+            ->assertDontSee('Log in')
+            ->assertDontSee('Register')
+            ->assertSee('+ Add Barangay')
+            ->assertSee('Actions')
+            ->assertSee('Edit')
+            ->assertSee('Delete');
+    }
+
     public function test_barangay_detail_displays_the_requested_record(): void
     {
         $this->get('/brgys/San%20Isidro%20Village')
             ->assertOk()
             ->assertSee('San Isidro Village')
             ->assertSee('Virac');
+    }
+
+    public function test_guest_write_routes_redirect_to_login(): void
+    {
+        $barangay = Barangay::where('brgy_name', 'San Isidro Village')->firstOrFail();
+
+        $this->get(route('brgys.create'))
+            ->assertRedirect(route('login'));
+        $this->post(route('brgys.store'))
+            ->assertRedirect(route('login'));
+        $this->get(route('brgys.edit', $barangay))
+            ->assertRedirect(route('login'));
+        $this->put(route('brgys.update', $barangay))
+            ->assertRedirect(route('login'));
+        $this->delete(route('brgys.destroy', $barangay))
+            ->assertRedirect(route('login'));
     }
 
     public function test_barangay_list_can_be_filtered_by_municipality(): void
@@ -209,6 +252,7 @@ class BrgyPagesTest extends TestCase
 
     public function test_create_form_contains_every_barangay_field(): void
     {
+        $this->signIn();
         $municipality = Municipality::query()->orderBy('name')->first();
 
         $this->get('/brgys/create')
@@ -229,6 +273,8 @@ class BrgyPagesTest extends TestCase
 
     public function test_invalid_barangay_submission_does_not_save(): void
     {
+        $this->signIn();
+
         $this->from('/brgys/create')
             ->post('/brgys', [
                 'name' => 'Invalid Barangay',
@@ -245,6 +291,8 @@ class BrgyPagesTest extends TestCase
 
     public function test_creating_barangay_updates_the_live_home_count(): void
     {
+        $this->signIn();
+
         $countBefore = Barangay::count();
         $name = 'Count Test Barangay';
 
@@ -271,5 +319,14 @@ class BrgyPagesTest extends TestCase
         } finally {
             Barangay::where('brgy_name', $name)->delete();
         }
+    }
+
+    private function signIn(): void
+    {
+        $this->actingAs(User::create([
+            'name' => 'Barangay Test User',
+            'email' => 'barangay-test@example.com',
+            'password' => 'test-password',
+        ]));
     }
 }
